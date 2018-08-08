@@ -1,13 +1,13 @@
 const airbnb = require('airbnbapi-enhanced')
-module.exports = function (ctx, cb) {
-  console.log(ctx)
+const to = require('await-to-js').default;
+module.exports = async function (ctx, cb) {
   const checkin = ctx.data.checkin.replace(/-/g, '/')
   const checkout = ctx.data.checkout.replace(/-/g, '/')
   const location = ctx.data.location
   const guests = ctx.data.guests
-  airbnb.newAccessToken({username:'christian.saiki@thevelops.com', password:'thevelops123!'})
-  .then(token => {
-  airbnb.listingSearch({
+  const [airbnbErr, token] = await to(airbnb.newAccessToken({username: ctx.data.AIRBNB_USER, password: ctx.data.AIRBNB_PASS}))
+  if (airbnbErr) return cb(airbnbErr)
+  const airbnbOptions = {
     token: token.token,
     location,
     offset: 0,
@@ -20,18 +20,18 @@ module.exports = function (ctx, cb) {
     roomTypes: ['Entire home/apt'],
     guests,
     sortDirection: 1
-  }).then(values => {
-    const response = values.search_results.map(home => {
-      return {
-        url: `https://www.airbnb.com/rooms/${home.listing.id}?check_in=${checkin}&check_out=${checkout}&guests=${guests}`,
-        price: home.pricing_quote.localized_total_price,
-        rating: home.listing.star_rating,
-        number_of_reviews: home.listing.reviews
-      }
-    })
-    cb(null, response)
+  }
+  const [airbnbErr2, values] = await to(airbnb.listingSearch(airbnbOptions))
+  if (airbnbErr2) return cb(airbnbErr)
+  const response = values.search_results.map(home => {
+    return {
+      url: `https://www.airbnb.com/rooms/${home.listing.id}?check_in=${checkin}&check_out=${checkout}&guests=${guests}`,
+      price: home.pricing_quote.localized_total_price,
+      rating: home.listing.star_rating,
+      type: 'Airbnb'
+    }
   })
-  })
+  cb(null, response)
 }
 
 
