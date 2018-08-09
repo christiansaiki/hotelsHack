@@ -8,7 +8,9 @@
   },
   "dependencies": {
     "airbnbapi-enhanced": "0.0.1",
-    "await-to-js": "^2.0.1"
+    "await-to-js": "^2.0.1",
+    "axios": "^0.18.0",
+    "luxon": "^1.3.3"
   },
   "author": "",
   "license": "ISC"
